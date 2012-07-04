@@ -437,10 +437,12 @@ class Picture(object):
 
         if 'align' in self.user_defined:
             align = self.user_defined['align']
-            if 'top' in align:
-                attrib['style:vertical-pos'] = 'top'
+            if 'left' in align:
+                attrib['svg:x'] = '1cm'
+            if 'center' in align:
+                attrib['svg:x'] = '14cm'
             if 'right' in align:
-                attrib['style:horizontal-pos'] = 'right'
+                attrib['svg:x'] = '27cm'
         return attrib
 
     def _process_kw(self, kw):
@@ -1062,6 +1064,10 @@ class Footer(MixedContent):
 
 class PictureFrame(MixedContent):
     def __init__(self, slide, picture, attrib=None):
+        # TODO: Find a way to embed inline images in ODP
+        #       Unfortunately, text:anchor-type="as-char"
+        #       is not supported in ODP, only ODT
+
         x,y,w,h = picture.get_xywh()
         attrib = attrib or {
             'presentation:style-name':'pr2',
