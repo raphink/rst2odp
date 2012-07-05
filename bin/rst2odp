@@ -84,6 +84,21 @@ class SetSlideDesign(rst.Directive):
 
 rst.directives.register_directive('slide-design', SetSlideDesign)
 
+class SetPageLayout(rst.Directive):
+    required_arguments = 1
+    optional_arguments = 0
+    final_argument_whitespace = 1
+    has_content = False
+    #
+    # See visit_literal_block for code that processes the node
+    #   created here.
+    def run(self):
+        layout = self.arguments[0]
+        layout_block = nodes.docinfo(name="page-layout", layout=layout)
+	return [layout_block]
+
+rst.directives.register_directive('page-layout', SetPageLayout)
+
 class ImportNode(nodes.General, nodes.Inline, nodes.Element): pass
 
 class ImportSlideBlock(rst.Directive):
@@ -181,10 +196,10 @@ class ODPTranslator(nodes.GenericNodeVisitor):
         self.bullet_depth = 0
         self.footer = None
 
-    def _init_slide(self, force=False, master_page_name=None):
+    def _init_slide(self, force=False, master_page_name=None, page_layout=None):
         if force or self.cur_slide is None:
             self._reset()
-            self.cur_slide = self.preso.add_slide(master_page_name=master_page_name)
+            self.cur_slide = self.preso.add_slide(master_page_name=master_page_name, page_layout=page_layout)
 
     def at(self, nodename):
         """
@@ -203,6 +218,15 @@ class ODPTranslator(nodes.GenericNodeVisitor):
                 return design
 	    if child.attributes.get('name', None) == 'slide-design':
                 design = child.attributes['design']
+
+    def get_page_layout(self, node):
+        children = node.parent.children
+        layout = ''
+        for child in children:
+            if child is node:
+                return layout
+	    if child.attributes.get('name', None) == 'page-layout':
+                layout = child.attributes['layout']
 
     def dispatch_visit(self, node):
         # Easier just to throw nodes I'm in in a dict, than keeping
@@ -241,7 +265,8 @@ class ODPTranslator(nodes.GenericNodeVisitor):
     def visit_title(self, node):
         if self.at('section') < 2:
             master_page_name = self.get_slide_design(node)
-            self._init_slide(master_page_name=master_page_name)
+            page_layout = self.get_page_layout(node)
+            self._init_slide(master_page_name=master_page_name, page_layout=page_layout)
         if self.at('topic'):
             return
         elif self.at('sidebar'):
@@ -556,7 +581,8 @@ class ODPTranslator(nodes.GenericNodeVisitor):
         if self.at('section') < 2:
             # don't create slide for subsections
             master_page_name = self.get_slide_design(node)
-            self._init_slide(force=True, master_page_name=master_page_name)
+            page_layout = self.get_page_layout(node)
+            self._init_slide(force=True, master_page_name=master_page_name, page_layout=page_layout)
 
     def depart_section(self, node):
         if self.at('section') < 1:
@@ -566,7 +592,8 @@ class ODPTranslator(nodes.GenericNodeVisitor):
         # hack to have titleless slides (transitions come in between sections)
         self._reset()
         master_page_name = self.get_slide_design(node)
-        self._init_slide(force=True, master_page_name=master_page_name)
+        page_layout = self.get_page_layout(node)
+        self._init_slide(force=True, master_page_name=master_page_name, page_layout=page_layout)
 
     depart_transition = _dumb_depart
 

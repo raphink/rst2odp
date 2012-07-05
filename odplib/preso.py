@@ -337,9 +337,9 @@ class Preso(object):
             self._auto_styles.append(node)
 
 
-    def add_slide(self, master_page_name=''):
+    def add_slide(self, master_page_name=None, page_layout=None):
         pnum = len(self.slides)+1
-        s = Slide(self, page_number=pnum, master_page_name=master_page_name)
+        s = Slide(self, page_number=pnum, master_page_name=master_page_name, page_layout=page_layout)
         self.slides.append(s)
         return s
 
@@ -563,7 +563,7 @@ class XMLSlide(object):
 
 
 class Slide(object):
-    def __init__(self, preso, page_number=None, master_page_name=''):
+    def __init__(self, preso, page_number=None, master_page_name=None, page_layout=None):
         self.title_frame = None
         self.preso = preso
         self.text_frames = []
@@ -583,6 +583,10 @@ class Slide(object):
             self.master_page_name = master_page_name
         else:
             self.master_page_name = self._get_master_page_name()
+	if page_layout:
+            self.page_layout = page_layout
+        else:
+            self.page_layout = 'AL1T0'
 
         self.element_stack = [] # allow us to push pop
         self.cur_element = None # if we write it could be to title,
@@ -702,11 +706,12 @@ class Slide(object):
 
     def _init_xml(self):
         mpn = self.master_page_name
+        page_layout = self.page_layout
         self._page = el('draw:page', attrib={
                 'draw:name':'page%d' % self.page_number,
                 'draw:style-name':'dp1',
                 'draw:master-page-name':mpn,
-                'presentation:presentation-page-layout-name':'AL1T0'
+                'presentation:presentation-page-layout-name':page_layout
                 })
         office_forms = sub_el(self._page, 'office:forms',
                               attrib={'form:automatic-focus':'false',
