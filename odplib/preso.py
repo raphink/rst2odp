@@ -461,14 +461,16 @@ class Picture(object):
 
         DPCM = 1 # dots per cm
         if 'crop' in self.user_defined.get('classes', []):
-            x,y,w,h = imagescale.adjust_crop(SLIDE_WIDTH*DPCM, SLIDE_HEIGHT*DPCM,self.w, self.h)
+            _x,_y,_w,_h = imagescale.adjust_crop(SLIDE_WIDTH*DPCM, SLIDE_HEIGHT*DPCM,self.w, self.h)
+	    x,y,w,h = [str(foo)+"cm" for foo in (_x,_y,_w,_h)]
         elif 'fit' in self.user_defined.get('classes', []):
-            x,y,w,h = imagescale.adjust_fit(SLIDE_WIDTH*DPCM, SLIDE_HEIGHT*DPCM,self.w, self.h)
+            _x,_y,_w,_h = imagescale.adjust_fit(SLIDE_WIDTH*DPCM, SLIDE_HEIGHT*DPCM,self.w, self.h)
+	    x,y,w,h = [str(foo)+"cm" for foo in (_x,_y,_w,_h)]
         elif 'fill' in self.user_defined.get('classes', []):
-            x,y,w,h = 0,0,SLIDE_WIDTH,SLIDE_HEIGHT
+            x,y,w,h = 0,0,"%scm" % SLIDE_WIDTH,"%scm" % SLIDE_HEIGHT
         else:
-            x,y,w,h = 1.4, 4.6, self.get_width(), self.get_height()
-        return [str(foo)+measurement for foo in [x,y,w,h]]
+            x,y,w,h = '1.4cm', '4.6cm', self.get_width(), self.get_height()
+        return [str(foo) for foo in [x,y,w,h]]
 
     def get_width(self, measurement=None):
         if measurement is None or measurement == 'cm':
@@ -477,8 +479,8 @@ class Picture(object):
         if 'width' in self.user_defined:
             return self.user_defined['width'] + 'pt'
         if 'scale' in self.user_defined:
-            return '%spt' % (self.w * float(self.user_defined['scale'])/100)
-        return str(self.w/scale)
+            return '%spt' % (self.w * float(self.user_defined['scale'])*72/(96*100))
+        return str(self.w/scale)+'cm'
 
     def get_height(self, measurement=None):
         if measurement is None:
@@ -488,8 +490,8 @@ class Picture(object):
         if 'height' in self.user_defined:
             return self.user_defined['height'] + 'pt'
         if 'scale' in self.user_defined:
-            return '%spt' % (self.h * float(self.user_defined['scale'])/100)
-        return str(self.h/scale)
+            return '%spt' % (self.h * float(self.user_defined['scale'])*72/(96*100))
+        return str(self.h/scale)+'cm'
 
 
 
